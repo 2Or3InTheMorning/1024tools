@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use View;
-use Input;
 use Response;
 use App\Models\Tool;
 use App\Support\Cache;

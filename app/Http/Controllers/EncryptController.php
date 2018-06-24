@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use View;
-use Input;
 use Illuminate\Http\Request;
 use App\Exceptions\Exception as ToolsException;
 
@@ -33,7 +32,7 @@ class EncryptController extends Controller
         $base64encodedkey = $request->input('base64encodedkey', false);
         $this->validate($input, ['query' => 'max:2000', 'algo' => 'required', 'key' => 'max:512']);
         $algos = $this->getSortedHashAlgos();
-        if (!in_array($input['algo'], $algos)) {
+        if (!in_array($input['algo'], $algos, true)) {
             throw new ToolsException('不支持该算法', ToolsException::CODE_BAD_PARAMS);
         }
 

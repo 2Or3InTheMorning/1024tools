@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use View;
-use Input;
 use Ramsey\Uuid\Uuid;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
@@ -24,6 +23,7 @@ class ExtraController extends Controller
     public function postUuid(Request $request)
     {
         $num = $request->post('num', 5);
+
         try {
             $this->validate(compact('num'), [
                 'num' => 'required|integer|between:1,10',

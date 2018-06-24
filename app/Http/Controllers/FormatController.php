@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use View;
-use Input;
-use Response;
 use SqlFormatter;
 use Illuminate\Http\Request;
 
@@ -29,7 +27,7 @@ class FormatController extends Controller
     {
         $query = $request->input('query', '');
         $type = $request->input('type', 'format');
-        if ($type == 'compress') {
+        if ($type === 'compress') {
             $result = SqlFormatter::compress($query);
         } else {
             $result = SqlFormatter::format($query);

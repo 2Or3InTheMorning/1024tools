@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use View;
-use Input;
 use Response;
 use Exception;
 use App\Support\Curl;
@@ -24,7 +23,7 @@ class HttpController extends Controller
         $header = '';
         foreach ($request->server as $k => $v) {
             if (strpos(strtolower($k), 'http_') === 0) {
-                if (in_array(strtolower($k), ['http_cookie', 'http_remoteip', 'http_x_forwarded_for'])) {
+                if (in_array(strtolower($k), ['http_cookie', 'http_remoteip', 'http_x_forwarded_for'], true)) {
                     continue;
                 }
                 $name = explode('_', strtolower(substr($k, 5)));
@@ -77,6 +76,7 @@ class HttpController extends Controller
         $curl->get($url);
         $data = ['status' => intval(!$curl->curl_error), 'data' => json_decode(trim($curl->response)) ];
         $response = Response::json($data);
+
         try {
             $response->setCallback($request->query('callback'));
         } catch (Exception $e) {

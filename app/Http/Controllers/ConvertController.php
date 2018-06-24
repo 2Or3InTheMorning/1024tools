@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Log;
 use View;
-use Input;
 use lessc;
 use Exception;
 use Illuminate\Http\Request;
@@ -26,19 +25,20 @@ class ConvertController extends Controller
     public function postUrlencode(Request $request)
     {
         $input = $request->only('query', 'type', 'method');
-        $rules = array(
+        $rules = [
             'query' => 'required',
             'type' => 'required|in:decode,encode',
             'method' => 'required|in:urlencode,rawurlencode',
-        );
+        ];
         $this->validate($input, $rules);
         $result = explode("\n", $input['query']);
-        $functionTable = array(
-            'urlencode' => array('decode' => 'urldecode', 'encode' => 'urlencode'),
-            'rawurlencode' => array('decode' => 'rawurldecode', 'encode' => 'rawurlencode'),
-        );
+        $functionTable = [
+            'urlencode' => ['decode' => 'urldecode', 'encode' => 'urlencode'],
+            'rawurlencode' => ['decode' => 'rawurldecode', 'encode' => 'rawurlencode'],
+        ];
         array_walk($result, function (&$v, $k) use ($input, $functionTable) {
-            $v = $functionTable[$input['method']][$input['type']]($v);});
+            $v = $functionTable[$input['method']][$input['type']]($v);
+        });
 
         return $this->success($result);
     }
@@ -65,10 +65,10 @@ class ConvertController extends Controller
             'encoding' => 'required',
         ];
         $this->validate($input, $rules);
-        if (!in_array($input['encoding'], $this->base64Encoding)) {
+        if (!in_array($input['encoding'], $this->base64Encoding, true)) {
             return $this->error('encoding unsupported');
         }
-        if ($input['type'] == 'encode') {
+        if ($input['type'] === 'encode') {
             try {
                 $query = iconv('UTF-8', $input['encoding'], $input['query']);
                 $result = base64_encode($query);
@@ -80,7 +80,8 @@ class ConvertController extends Controller
         } else {
             if (preg_match("/^[\w\+\/\=]+$/", $input['query'])) {
                 $query = iconv('UTF-8', $input['encoding'], $input['query']);
-                $result = base64_decode($query);
+                $result = base64_decode($query, true);
+
                 try {
                     $result = iconv($input['encoding'], 'UTF-8', $result);
 
@@ -102,6 +103,7 @@ class ConvertController extends Controller
     public function postLess(Request $request)
     {
         $query = $request->post('query');
+
         try {
             $less = new lessc();
             $result = $less->compile($query);
@@ -132,12 +134,14 @@ class ConvertController extends Controller
     public function postUnserialize(Request $request)
     {
         $query = $request->input('query');
+
         try {
             if (false !== ($result = unserialize(trim($query)))) {
                 return $this->success(print_r($result, true));
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
+
         return $this->error('输入错误，该字符串无法反序列化');
-        
     }
 }

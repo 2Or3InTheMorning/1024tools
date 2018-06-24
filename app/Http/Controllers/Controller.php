@@ -20,7 +20,7 @@ class Controller extends BaseController
      * @param array $data
      * @param array $rules
      */
-    protected function validate($data = array(), $rules = array())
+    protected function validate($data = [], $rules = [])
     {
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {

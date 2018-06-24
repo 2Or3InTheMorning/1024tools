@@ -11,6 +11,5 @@ class Curl extends \Curl\Curl
         parent::__construct();
 
         $this->setUserAgent(static::USER_AGENT);
-
     }
 }
