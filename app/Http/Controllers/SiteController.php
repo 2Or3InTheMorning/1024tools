@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use View;
 use Input;
-use Request;
 use Response;
 use App\Models\Tool;
 use App\Support\Cache;
-use Gregwar\Captcha\CaptchaBuilder;
+use Illuminate\Http\Request;
 
 class SiteController extends Controller
 {
@@ -37,27 +36,7 @@ class SiteController extends Controller
         return Response::make($builder->output(), 200, ['Content-type' => 'image/jpeg']);
     }
 
-    /**
-     * 代理.
-     */
-    public function postProxy()
-    {
-        $input = Input::only('method', 'url', 'params');
-        $this->validate($input, array(
-            'method' => 'required|in:get,post',
-            'url' => 'required',
-        ));
-        extract($input);
-        $curl = new Curl\Curl();
-        $curl->$method($url, $params);
-        if ($curl->error) {
-            return $this->error($curl->error_message);
-        } else {
-            return $this->success($curl->response);
-        }
-    }
-
-    public function getTools()
+    public function getTools(Request $request)
     {
         $cacheKey = 'site.ajax.tools';
         $expireMinite = 3;
@@ -71,7 +50,7 @@ class SiteController extends Controller
             return $tools;
         });
 
-        return Response::json($tools)->setCallback(Input::get('callback'));
+        return Response::json($tools)->setCallback($request->query('callback'));
     }
 
     public function getBrowserDetect()

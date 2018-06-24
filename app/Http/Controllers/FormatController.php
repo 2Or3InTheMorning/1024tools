@@ -6,35 +6,35 @@ use View;
 use Input;
 use Response;
 use SqlFormatter;
+use Illuminate\Http\Request;
 
 class FormatController extends Controller
 {
     public function getJson()
     {
-        return View::make('format.json');
+        return view('format.json');
     }
 
     public function getHighlight()
     {
-        return View::make('format.highlight');
+        return view('format.highlight');
     }
 
     public function getSql()
     {
-        return View::make('format.sql');
+        return view('format.sql');
     }
 
-    public function postSql()
+    public function postSql(Request $request)
     {
-        $query = Input::get('query', '');
-        $type = Input::get('type', 'format');
+        $query = $request->input('query', '');
+        $type = $request->input('type', 'format');
         if ($type == 'compress') {
-            $result = '<pre>'.SqlFormatter::compress($query).'</pre>';
+            $result = SqlFormatter::compress($query);
         } else {
             $result = SqlFormatter::format($query);
         }
 
-        return Response::json(compact('result'));
-        //return View::make('format.sql', compact('query', 'result'));
+        return $this->success($result);
     }
 }

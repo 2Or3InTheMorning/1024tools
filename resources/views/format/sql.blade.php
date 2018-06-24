@@ -66,8 +66,12 @@ $('.format').click(function(e){
 			url: '{{URL::route("format.sql.post")}}',
 			data: {"query":inputdata, "type": $(this).data('type')},
 			success: function(data){
-				$('#output').html(data.result);
-				showmsg('success', '成功');
+			    if (data.status == 1) {
+                    $('#output').html(data.result);
+                    showmsg('success', '成功');
+                } else {
+			        showmsg('danger', data.error)
+				}
 			},
 			error: function(){
 				showmsg('danger', '网络错误');

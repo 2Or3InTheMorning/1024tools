@@ -4,19 +4,19 @@ namespace App\Http\Controllers;
 
 use View;
 use Input;
+use Illuminate\Http\Request;
 use App\Exceptions\Exception as ToolsException;
 
 class EncryptController extends Controller
 {
-    public function getpostHash($query = null)
+    public function getpostHash(Request $request, $query = null)
     {
-        if (is_null($query)) {
-            $query = Input::get('query', '123456');
-        }
+        $query = $request->input('query', is_null($query) ? '123456' : $query);
+
         $this->validate(compact('query'), ['query' => 'max:2000']);
         $algos = $this->getSortedHashAlgos();
 
-        return View::make('encrypt.hash', compact('algos', 'query'));
+        return view('encrypt.hash', compact('algos', 'query'));
     }
 
     public function getHmac()
@@ -24,12 +24,13 @@ class EncryptController extends Controller
         $algos = $this->getSortedHashAlgos();
         $default = ['query' => '', 'algo' => 'sha1', 'key' => '', 'base64encodedkey' => false];
 
-        return View::make('encrypt.hmac', array_merge(compact('algos'), $default));
+        return view('encrypt.hmac', array_merge(compact('algos'), $default));
     }
 
-    public function postHmac()
+    public function postHmac(Request $request)
     {
-        $input = Input::only('algo', 'query', 'key', 'base64encodedkey');
+        $input = $request->only('algo', 'query', 'key');
+        $base64encodedkey = $request->input('base64encodedkey', false);
         $this->validate($input, ['query' => 'max:2000', 'algo' => 'required', 'key' => 'max:512']);
         $algos = $this->getSortedHashAlgos();
         if (!in_array($input['algo'], $algos)) {
@@ -37,7 +38,7 @@ class EncryptController extends Controller
         }
 
         $key = $input['key'];
-        if ($input['base64encodedkey']) {
+        if ($base64encodedkey) {
             if (false === ($key = base64_decode($key, true))) {
                 throw new ToolsException('密钥不能base64 decode', ToolsException::CODE_BAD_PARAMS);
             }
@@ -46,7 +47,7 @@ class EncryptController extends Controller
         $result = hash_hmac($input['algo'], $input['query'], $key);
         $rawResult = base64_encode(hash_hmac($input['algo'], $input['query'], $key, true));
 
-        return View::make('encrypt.hmac', array_merge(compact('algos', 'result', 'rawResult'), $input));
+        return view('encrypt.hmac', array_merge(compact('algos', 'result', 'rawResult', 'base64encodedkey'), $input));
     }
 
     private function getSortedHashAlgos()

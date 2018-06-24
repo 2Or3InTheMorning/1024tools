@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use View;
 use Input;
-use Request;
 use Response;
 use Exception;
 use App\Support\Curl;
+use Illuminate\Http\Request;
 
 class HttpController extends Controller
 {
@@ -19,10 +19,10 @@ class HttpController extends Controller
         'dangdang' => 'http://iplookup.dangdang.com/?format=json&ip=',
     ];
 
-    public function getHeader()
+    public function getHeader(Request $request)
     {
         $header = '';
-        foreach ($_SERVER as $k => $v) {
+        foreach ($request->server as $k => $v) {
             if (strpos(strtolower($k), 'http_') === 0) {
                 if (in_array(strtolower($k), ['http_cookie', 'http_remoteip', 'http_x_forwarded_for'])) {
                     continue;
@@ -31,77 +31,54 @@ class HttpController extends Controller
                 array_walk($name, function (&$v, $k) {
                     $v = ucfirst($v);
                 });
-                $header .= implode('-', $name).': '.$v."\r\n";
+                $header = implode('-', $name).': '.$v."\r\n" . $header;
             }
         }
 
-        return View::make('http.header', compact('header'));
+        return view('http.header', compact('header'));
     }
 
-    public function getIp($ip = null)
+    public function getIp(Request $request)
     {
-        $ip = $ip ?: Request::ip();
-        $apis = self::$ipApis;
+        $ip = $request->get('ip', $request->ip());
 
-        return View::make('http.ip', compact('ip', 'apis'));
+        return view('http.ip', ['ip' => $ip, 'apis' => self::$ipApis]);
     }
 
-    public function getIpSina()
+    public function getIpSina(Request $request)
     {
-        $url = self::$ipApis['sina'].$this->getQueryIp();
+        return $this->doIpProxy($request, 'sina');
+    }
+
+    public function getIpTaobao(Request $request)
+    {
+        return $this->doIpProxy($request, 'taobao');
+    }
+
+    public function getIpPconline(Request $request)
+    {
+        return $this->doIpProxy($request, 'pconline');
+    }
+
+    public function getIpIpApi(Request $request)
+    {
+        return $this->doIpProxy($request, 'ip_api');
+    }
+
+    public function getIpDangdang(Request $request)
+    {
+        return $this->doIpProxy($request, 'dangdang');
+    }
+
+    private function doIpProxy(Request $request, $source)
+    {
+        $url = self::$ipApis[$source].$request->get('ip', $request->ip());
         $curl = new Curl();
         $curl->get($url);
-
-        return $this->proxyResponse(empty($curl->curl_error), json_decode($curl->response));
-    }
-
-    public function getIpTaobao()
-    {
-        $url = self::$ipApis['taobao'].$this->getQueryIp();
-        $curl = new Curl();
-        $curl->get($url);
-
-        return $this->proxyResponse(empty($curl->curl_error), json_decode($curl->response));
-    }
-
-    public function getIpPconline()
-    {
-        $url = self::$ipApis['pconline'].$this->getQueryIp();
-        $curl = new Curl();
-        $curl->get($url);
-
-        return $this->proxyResponse(empty($curl->curl_error), json_decode($curl->response));
-    }
-
-    public function getIpIpApi()
-    {
-        $url = self::$ipApis['ip_api'].$this->getQueryIp();
-        $curl = new Curl();
-        $curl->get($url);
-
-        return $this->proxyResponse(empty($curl->curl_error), json_decode(trim($curl->response)));
-    }
-
-    public function getIpDangdang()
-    {
-        $url = self::$ipApis['dangdang'].$this->getQueryIp();
-        $curl = new Curl();
-        $curl->get($url);
-
-        return $this->proxyResponse(empty($curl->curl_error), json_decode(trim($curl->response)));
-    }
-
-    private function getQueryIp()
-    {
-        return Input::get('ip', Request::ip());
-    }
-
-    private function proxyResponse($status, $return = '')
-    {
-        $data = ['status' => intval($status), 'data' => $return];
+        $data = ['status' => intval(!$curl->curl_error), 'data' => json_decode(trim($curl->response)) ];
         $response = Response::json($data);
         try {
-            $response->setCallback(Input::get('callback'));
+            $response->setCallback($request->query('callback'));
         } catch (Exception $e) {
         }
 

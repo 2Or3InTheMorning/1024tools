@@ -19,10 +19,6 @@ class ApiResponse
             'error' => $error,
         ];
         $response = Response::json($data);
-        try {
-            $response->setCallback(Input::get('callback'));
-        } catch (Exception $e) {
-        }
 
         return $response;
     }

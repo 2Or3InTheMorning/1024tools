@@ -7,6 +7,7 @@ use View;
 use Input;
 use lessc;
 use Exception;
+use Illuminate\Http\Request;
 
 class ConvertController extends Controller
 {
@@ -19,75 +20,73 @@ class ConvertController extends Controller
 
     public function getUrlencode()
     {
-        return View::make('convert.urlencode');
+        return view('convert.urlencode');
     }
 
-    public function postUrlencode()
+    public function postUrlencode(Request $request)
     {
-        $input = Input::only('query', 'type', 'method');
+        $input = $request->only('query', 'type', 'method');
         $rules = array(
             'query' => 'required',
             'type' => 'required|in:decode,encode',
             'method' => 'required|in:urlencode,rawurlencode',
         );
         $this->validate($input, $rules);
-        extract($input);
-        $result = explode("\n", $query);
+        $result = explode("\n", $input['query']);
         $functionTable = array(
             'urlencode' => array('decode' => 'urldecode', 'encode' => 'urlencode'),
             'rawurlencode' => array('decode' => 'rawurldecode', 'encode' => 'rawurlencode'),
         );
-        array_walk($result, function (&$v, $k) use ($type, $method, $functionTable) {
-            $v = $functionTable[$method][$type]($v);});
+        array_walk($result, function (&$v, $k) use ($input, $functionTable) {
+            $v = $functionTable[$input['method']][$input['type']]($v);});
 
         return $this->success($result);
     }
 
     public function getXmlJson()
     {
-        return View::make('convert.xmljson');
+        return view('convert.xmljson');
     }
 
-    public function getBase64()
+    public function getBase64(Request $request)
     {
-        $query = Input::get('q');
+        $query = $request->query('q');
         $encoding = $this->base64Encoding;
 
-        return View::make('convert.base64', compact('query', 'encoding'));
+        return view('convert.base64', compact('query', 'encoding'));
     }
 
-    public function postBase64()
+    public function postBase64(Request $request)
     {
-        $data = Input::only('query', 'type', 'encoding');
+        $input = $request->only('query', 'type', 'encoding');
         $rules = [
             'query' => 'required',
             'type' => 'required|in:decode,encode',
             'encoding' => 'required',
         ];
-        $this->validate($data, $rules);
-        if (!in_array($data['encoding'], $this->base64Encoding)) {
+        $this->validate($input, $rules);
+        if (!in_array($input['encoding'], $this->base64Encoding)) {
             return $this->error('encoding unsupported');
         }
-        extract($data);
-        if ($type == 'encode') {
+        if ($input['type'] == 'encode') {
             try {
-                $query = iconv('UTF-8', $encoding, $query);
+                $query = iconv('UTF-8', $input['encoding'], $input['query']);
                 $result = base64_encode($query);
 
                 return $this->success($result);
             } catch (Exception $e) {
-                return $this->error('查询字符串包含'.$encoding.'编码外的字符，请检查所选编码');
+                return $this->error('查询字符串包含'.$input['encoding'].'编码外的字符，请检查所选编码');
             }
         } else {
-            if (preg_match("/^[\w\+\/\=]+$/", $query)) {
-                $query = iconv('UTF-8', $encoding, $query);
+            if (preg_match("/^[\w\+\/\=]+$/", $input['query'])) {
+                $query = iconv('UTF-8', $input['encoding'], $input['query']);
                 $result = base64_decode($query);
                 try {
-                    $result = iconv($encoding, 'UTF-8', $result);
+                    $result = iconv($input['encoding'], 'UTF-8', $result);
 
                     return $this->success($result);
                 } catch (Exception $e) {
-                    return $this->error('不能解码转换为合法的'.$encoding.'字符串，请检查编码和查询字符串');
+                    return $this->error('不能解码转换为合法的'.$input['encoding'].'字符串，请检查编码和查询字符串');
                 }
             } else {
                 return $this->error('格式错误');
@@ -97,12 +96,12 @@ class ConvertController extends Controller
 
     public function getLess()
     {
-        return View::make('convert.less');
+        return view('convert.less');
     }
 
-    public function postLess()
+    public function postLess(Request $request)
     {
-        $query = Input::get('query');
+        $query = $request->post('query');
         try {
             $less = new lessc();
             $result = $less->compile($query);
@@ -117,12 +116,12 @@ class ConvertController extends Controller
 
     public function getMarkdown()
     {
-        return View::make('convert.markdown');
+        return view('convert.markdown');
     }
 
     public function getTimestamp()
     {
-        return View::make('convert.timestamp');
+        return view('convert.timestamp');
     }
 
     public function getUnserialize()
@@ -130,11 +129,11 @@ class ConvertController extends Controller
         return view('convert.unserialize');
     }
 
-    public function postUnserialize()
+    public function postUnserialize(Request $request)
     {
-        $query = Input::get('query');
+        $query = $request->input('query');
         try {
-            if (false !== ($result = unserialize($query))) {
+            if (false !== ($result = unserialize(trim($query)))) {
                 return $this->success(print_r($result, true));
             }
         } catch (Exception $e) {}

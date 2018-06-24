@@ -6,23 +6,24 @@ use View;
 use Input;
 use Ramsey\Uuid\Uuid;
 use App\Support\ApiResponse;
+use Illuminate\Http\Request;
 use App\Exceptions\ToolsException;
 
 class ExtraController extends Controller
 {
     public function getRandom()
     {
-        return View::make('extra.random');
+        return view('extra.random');
     }
 
     public function getUuid()
     {
-        return View::make('extra.uuid');
+        return view('extra.uuid');
     }
 
-    public function postUuid()
+    public function postUuid(Request $request)
     {
-        $num = Input::get('num');
+        $num = $request->post('num', 5);
         try {
             $this->validate(compact('num'), [
                 'num' => 'required|integer|between:1,10',

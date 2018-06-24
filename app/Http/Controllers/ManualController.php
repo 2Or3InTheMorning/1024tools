@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use View;
-
 class ManualController extends Controller
 {
     public function getAscii()
     {
-        return View::make('manual.ascii');
+        return view('manual.ascii');
     }
 
     public function getJquery()
     {
-        return View::make('manual.jquery');
+        return view('manual.jquery');
     }
 
     public function getHttpStatusCode()
     {
-        return View::make('manual.http-status-code');
+        return view('manual.http-status-code');
     }
 }
