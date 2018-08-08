@@ -136,7 +136,7 @@ class ConvertController extends Controller
         $query = $request->input('query');
 
         try {
-            if (false !== ($result = unserialize(trim($query)))) {
+            if (false !== ($result = unserialize(trim($query), ['allowed_classes' => false]))) {
                 return $this->success(print_r($result, true));
             }
         } catch (Exception $e) {
