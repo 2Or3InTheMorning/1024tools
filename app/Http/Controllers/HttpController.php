@@ -21,9 +21,13 @@ class HttpController extends Controller
     public function getHeader(Request $request)
     {
         $header = '';
+        $ignoreHeaders = explode(',', env('IGNORE_HEADERS_FOR_HTTP_HEADER'));
+        array_walk($ignoreHeaders, function (&$v) {
+            $v = 'http_' . strtolower(str_replace('-', '_', $v));
+        });
         foreach ($request->server as $k => $v) {
             if (strpos(strtolower($k), 'http_') === 0) {
-                if (in_array(strtolower($k), ['http_cookie', 'http_remoteip', 'http_x_forwarded_for'], true)) {
+                if (in_array(strtolower($k), $ignoreHeaders, true)) {
                     continue;
                 }
                 $name = explode('_', strtolower(substr($k, 5)));
@@ -39,7 +43,9 @@ class HttpController extends Controller
 
     public function getIp(Request $request)
     {
-        $ip = $request->get('ip', $request->ip());
+        $header = env('HTTP_HEADER_NAME_FOR_CLIENT_IP');
+        $defaultIp = !empty($header) ? $request->headers->get($header) : $request->ip();
+        $ip = $request->get('ip', $defaultIp);
 
         return view('http.ip', ['ip' => $ip, 'apis' => self::$ipApis]);
     }
