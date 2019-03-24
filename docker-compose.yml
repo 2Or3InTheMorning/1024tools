@@ -1,0 +1,59 @@
+version: '3'
+services:
+  #Nginx Service
+  web:
+    image: nginx:1.15-alpine
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./.docker/nginx/:/etc/nginx/conf.d/
+    networks:
+      - overlay
+
+  #PHP Service
+  php:
+    image: 1024tools_php
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+    environment:
+      SERVICE_NAME: php
+      SERVICE_TAGS: dev
+    volumes:
+    - ./:/var/www
+    networks:
+      - overlay
+
+  #MySQL Service
+  mysql:
+    image: mysql:5.7
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+    environment:
+      MYSQL_DATABASE: tools
+      MYSQL_ROOT_PASSWORD: 123456
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./.docker/mysql/data:/var/lib/mysql/
+      - ./.docker/mysql/init.sql://tmp/init.sql
+    networks:
+      - overlay
+
+#Docker Networks
+networks:
+  overlay:

@@ -1,0 +1,7 @@
+docker-composer.yml
+storage/app/*
+storage/framework/*
+storage/logs/**
+.*
+!.docker/nginx*
+!.env*
