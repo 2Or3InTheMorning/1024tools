@@ -74,12 +74,14 @@
 	<div class="col-md-12 input">
 		<div id="editor">{{{'<'.'?'.'php'}}}
 
-class HighlightTool extends Tool {
+class HighlightTool extends Tool
+{
     public $name = "代码高亮、代码着色、在线美化";
     public $notice = "该功能由JS在本地完成，您的输入不会发送到服务端";
 
-    public function doHighlight() {
-    
+    public function highlight()
+	{
+        echo "hello 1024tools";
     }
 
 }</div>
@@ -156,6 +158,10 @@ class HighlightTool extends Tool {
 		if ($('#do-highlight').data('show-preview') == "on") {
 			preview()
 		}
+		if (window.localStorage) {
+			window.localStorage.setItem('highlight_default_lang', $('#lang').val());
+			window.localStorage.setItem('highlight_default_style', $('#output-style').val());
+		}
 	})
 
 	function init() {
@@ -165,6 +171,12 @@ class HighlightTool extends Tool {
 			lang_html += '<option value="' + langs[i] + '">' + langs[i] +'</option>'
 		}
 		$('#lang').html(lang_html)
+		if (window.localStorage) {
+			var default_lang = window.localStorage.getItem('highlight_default_lang');
+			var default_style = window.localStorage.getItem('highlight_default_style');
+			default_lang && $('#lang').val(default_lang); 
+			default_style && $('#output-style').val(default_style);
+		}
 	}
 
 	function preview() {
