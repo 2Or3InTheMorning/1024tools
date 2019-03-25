@@ -51,7 +51,7 @@ class Handler extends ExceptionHandler
             if ($request->ajax()) {
                 return ApiResponse::error($exception->getMessage());
             }
-            return back()->withErrors($exception->getMessage());
+            return back()->with('errors', $exception->getMessage())->withInput();
         }
         return parent::render($request, $exception);
     }

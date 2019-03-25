@@ -39,8 +39,8 @@
 			</div>
 			<input type="hidden" name="_token" value="{{ csrf_token() }}" />
 			<button type="submit" class="btn btn-primary">计算</button>
-			@if(isset($errors) && $errors->any())
-			<p class="mt10 bg-danger">{{{$errors->first()}}}</p>
+			@if(session('errors'))
+			<p class="mt10 bg-danger">{{{session('errors')}}}</p>
 			@endif
 			
 			@if (isset($result))
