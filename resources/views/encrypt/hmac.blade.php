@@ -27,13 +27,22 @@
 				<label for="key" class="control-label">密钥：</label>
 				<samp>{!! Form::input('text', 'key', $key, ['class' => 'form-control', 'id' => 'key']) !!}</samp>
 			</div>
-			<div class="checkbox" title="如果您输入的是进行了base64编码处理后的密钥，请勾选此项，否则不勾选">
+			<div class="checkbox checkbox_key_type" title="如果您输入的是进行了base64编码处理后的密钥，请勾选此项，否则不勾选">
 				<label>
-					{!! Form::checkbox('base64encodedkey', 1, $base64encodedkey) !!} 密钥进行了base64编码
+					{!! Form::checkbox('base64encodedkey', 1, $base64encodedkey) !!} base64格式密钥
+				</label>
+			</div>
+			<div class="checkbox checkbox_key_type" title="如果您输入的是进行了hex编码的密钥，请勾选此项，否则不勾选">
+				<label>
+					{!! Form::checkbox('hexencodedkey', 1, $hexencodedkey) !!} hex格式密钥
 				</label>
 			</div>
 			<input type="hidden" name="_token" value="{{ csrf_token() }}" />
 			<button type="submit" class="btn btn-primary">计算</button>
+			@if(isset($errors) && $errors->any())
+			<p class="mt10 bg-danger">{{{$errors->first()}}}</p>
+			@endif
+			
 			@if (isset($result))
 			<div class="form-group mt10 clearfix">
 				<label for="result" class="control-label">结果A：</label>
@@ -60,5 +69,17 @@
 		</ol>
 	</div>
 </div>
+
+@section('footer')
+<script type="text/javascript">
+~function($) {
+	$('.checkbox_key_type input').click(function() {
+		if (this.checked) {
+			$('.checkbox_key_type input').not(this).prop('checked', false);
+		}
+	});
+}(jQuery)
+</script>
+@stop
 
 @stop

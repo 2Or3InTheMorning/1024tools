@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use View;
 use Illuminate\Http\Request;
-use App\Exceptions\Exception as ToolsException;
+use App\Exceptions\ToolsException;
 
 class EncryptController extends Controller
 {
@@ -21,7 +21,7 @@ class EncryptController extends Controller
     public function getHmac()
     {
         $algos = $this->getSortedHashAlgos();
-        $default = ['query' => '', 'algo' => 'sha1', 'key' => '', 'base64encodedkey' => false];
+        $default = ['query' => '', 'algo' => 'sha1', 'key' => '', 'base64encodedkey' => false, 'hexencodedkey' => false];
 
         return view('encrypt.hmac', array_merge(compact('algos'), $default));
     }
@@ -30,6 +30,7 @@ class EncryptController extends Controller
     {
         $input = $request->only('algo', 'query', 'key');
         $base64encodedkey = $request->input('base64encodedkey', false);
+        $hexencodedkey = $request->input('hexencodedkey', false);
         $this->validate($input, ['query' => 'max:2000', 'algo' => 'required', 'key' => 'max:512']);
         $algos = $this->getSortedHashAlgos();
         if (!in_array($input['algo'], $algos, true)) {
@@ -43,10 +44,18 @@ class EncryptController extends Controller
             }
         }
 
+        if ($hexencodedkey) {
+            try {
+                $key = hex2bin($key);
+            } catch (\Exception $e) {
+                throw new ToolsException('密钥不能hex decode', ToolsException::CODE_BAD_PARAMS);
+            }
+        }
+
         $result = hash_hmac($input['algo'], $input['query'], $key);
         $rawResult = base64_encode(hash_hmac($input['algo'], $input['query'], $key, true));
 
-        return view('encrypt.hmac', array_merge(compact('algos', 'result', 'rawResult', 'base64encodedkey'), $input));
+        return view('encrypt.hmac', array_merge(compact('algos', 'result', 'rawResult', 'base64encodedkey', 'hexencodedkey'), $input));
     }
 
     private function getSortedHashAlgos()
