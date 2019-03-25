@@ -36,7 +36,7 @@ class Controller extends BaseController
      */
     protected function error($error = null)
     {
-        return ApiResponse::error($error, $this->query());
+        return ApiResponse::error($error);
     }
 
     /**

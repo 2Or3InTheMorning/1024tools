@@ -78,10 +78,9 @@ class ConvertController extends Controller
                 return $this->error('查询字符串包含'.$input['encoding'].'编码外的字符，请检查所选编码');
             }
         } else {
+            $input['query'] = trim($input['query']);
             if (preg_match("/^[\w\+\/\=]+$/", $input['query'])) {
-                $query = iconv('UTF-8', $input['encoding'], $input['query']);
-                $result = base64_decode($query, true);
-
+                $result = base64_decode($input['query'], true);
                 try {
                     $result = iconv($input['encoding'], 'UTF-8', $result);
 
@@ -89,9 +88,8 @@ class ConvertController extends Controller
                 } catch (Exception $e) {
                     return $this->error('不能解码转换为合法的'.$input['encoding'].'字符串，请检查编码和查询字符串');
                 }
-            } else {
-                return $this->error('格式错误');
             }
+            return $this->error('格式错误，请检查输入是否正确');
         }
     }
 
@@ -134,7 +132,7 @@ class ConvertController extends Controller
     public function postUnserialize(Request $request)
     {
         $query = $request->input('query');
-
+        $query = trim($query);
         try {
             if (false !== ($result = unserialize(trim($query), ['allowed_classes' => false]))) {
                 return $this->success(print_r($result, true));
