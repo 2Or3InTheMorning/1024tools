@@ -96,8 +96,9 @@
 <script src="{{statics_path()}}/libs/ace/ace.js"></script>
 <script src="{{statics_path()}}/libs/ace/mode-markdown.js"></script>
 <script src="{{statics_path()}}/libs/marked/marked.js"></script>
+<script src="{{statics_path()}}/libs/DOMPurify/2.0.7/purify.min.js"></script>
 <script>
-~function($, ace, marked){
+~function($, ace, marked, DOMPurify){
 	var editor = ace.edit("markdown-input");
 	editor.setShowPrintMargin(false);
 	editor.setTheme("ace/theme/tomorrow_night");
@@ -112,6 +113,7 @@
 
 	function markdown_preview() {
 		var html = marked(editor.getValue())
+		html = DOMPurify.sanitize(html)
 		$("#preview").contents().find("body").html(html);
 		$("#preview").contents().find('#mdstyle').attr('href', '{{{statics_path()}}}/css/markdown/'+$('#output-style').val()+'.css')
 	}
@@ -172,6 +174,6 @@
 		}
 	})
 
-}(jQuery, ace, marked)
+}(jQuery, ace, marked, DOMPurify)
 </script>
 @stop
